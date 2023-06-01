@@ -1,0 +1,177 @@
+using gold.**
+
+toSet(C) :=  {x|  x in C}
+
+function createParser(A):IPushdownAutomaton begin
+	Q:= (0‥27)
+	Σ:= toSet(A) ∪ {' ', '\n'}
+	Γ:= {'1'}
+	q₀:= 0
+	F:= {11}
+	M:=GPushdownAutomaton(Q,Σ,Γ,q₀,F)
+	SkipChars := {'\n',' '}   
+	
+	//STACK HANDLING 
+	
+	//FIRST LINE
+	M.delta(0,1,"ROBOT_R").ignore()
+	
+	// DECLARATION WITH VARS
+	M.delta(1,2,"VARSId").ignore()
+	M.delta(2,3,",").ignore()
+	M.delta(3,3,"Id,").ignore()
+	M.delta(3,2,"Id").ignore()
+	M.delta(2,4,";PROCS").ignore()
+	M.delta(2,10,";[").push("1")
+	// PROCS
+	M.delta(1,4,"PROCS").ignore() 
+	M.delta(4,5,"Id[|").push("1")
+	M.delta(5,6,"Id").ignore()
+	M.delta(6,8,"|").ignore()
+	M.delta(6,7,",").ignore()
+	M.delta(7,7,"Id,").ignore()
+	M.delta(7,5,"Id").ignore()
+	M.delta(5,8,"|").ignore()
+	M.delta(8,12,λ).ignore()
+	M.delta(13,9,"]").pop("1")
+	M.delta(14,9,"]").pop("1")
+	M.delta(15,9,"]").pop("1")
+	M.delta(22,9,"]").pop("1")
+	M.delta(25,9,"]").pop("1")
+	M.delta(27,9,"]").pop("1")
+	M.delta(9,5,"Id[|").push("1")
+	M.delta(9,10,"[").push("1") 
+	
+	//BLOCK HADLING
+	
+	M.delta(1,10,"[").push("1")
+	M.delta(10,12,λ).ignore()
+	M.delta(13,11,"]").pop("1")
+	M.delta(14,11,"]").pop("1")
+	M.delta(15,11,"]").pop("1")
+	M.delta(22,11,"]").pop("1")
+	M.delta(25,11,"]").pop("1")
+	M.delta(27,11,"]").pop("1")
+	
+	// Commands
+	
+	//GOTO
+	M.delta(12,13,"assignTo:Num,Id").ignore() 
+	M.delta(12,13,"goTo:Id,Id").ignore()
+	M.delta(12,13,"goTo:Num,Id").ignore() 
+	M.delta(12,13,"goTo:Id,Num").ignore() 
+	M.delta(12,13,"goTo:Num,Num").ignore()
+	
+	//MOVE
+	M.delta(12,13,"move:Num").ignore()
+	M.delta(12,13,"move:Id").ignore()
+	M.delta(12,13,"turn:Left").ignore()
+	M.delta(12,13,"turn:around").ignore()
+	
+	/*
+	 * M.delta(5,6,"CMD").ignore()
+	 * 	M.delta(13,9,"]").pop("1")
+	M.delta(6,8,"D").ignore()
+	M.delta(6,7,"COMMA").ignore()
+	M.delta(7,7,"IdE,").ignore()
+	M.delta(7,5,"IdE").ignore()
+	M.delta(5,8,"|").ignore()
+	M.delta(8,12,LAM).ignore()
+	M.delta(13,9,"]").pop("1")
+	
+	 */
+	M.delta(12,13,"face:Dir").ignore()
+	M.delta(12,13,"put:Num,Objs").ignore() 
+	M.delta(12,13,"put:Id,Objs").ignore() 
+	M.delta(12,13, "moveToThe:Num,left").ignore()
+	M.delta(12,13, "Dir:Num,facing").ignore()
+	M.delta(12,13, "moveToThe:Id,left").ignore()
+	M.delta(12,13, "moveToThe:Id,facing").ignore()
+	M.delta(12,13, "moveInDir:Num,Dir").ignore()
+	M.delta(12,13, "moveInDir:Id,Dir").ignore()
+	
+	//Just a nop and also ;
+	M.delta(12,13, "nop:").ignore()
+	M.delta(13,12,';').ignore()
+	
+	// STUFF PROCEDUREC 
+	
+	M.delta(12,14,"Id:").ignore()
+	M.delta(14,15,"Num").ignore()
+	M.delta(14,15,"Id").ignore()
+	M.delta(15,12,';').ignore() 
+	M.delta(15,16,",").ignore()
+	M.delta(16,16,"Id,").ignore()
+	M.delta(16,16,"#,").ignore()
+	M.delta(16,14,"Id").ignore()
+	M.delta(16,14,"#").ignore()
+	M.delta(14,12,';').ignore() 
+	
+	// CONDITIONALS 
+	M.delta(17,18, "facing:Dir").ignore()
+	M.delta(17,18,"cans:Num,Objs").ignore()
+	M.delta(17,18,"cans:Id,Objs").ignore() 
+	M.delta(17,18,"canss:Num,Dir").ignore()
+	M.delta(17,18,"canss:Id,Dir").ignore()
+	M.delta(17,18,"cansss:Num,left").ignore()
+	M.delta(17,18,"cansss:Num,facing").ignore()
+	M.delta(17,18,"cansss:Id,left").ignore()
+	M.delta(17,18,"cansss:Id,facing").ignore()
+	M.delta(17,17, "not:").ignore() // not:
+	
+	// CONDITIONALS + STRUCTUREC
+	M.delta(12,19,"if").push("1")
+	M.delta(19,17,":").ignore()
+	M.delta(18,20,"then:").ignore()
+	
+	// [something]anything
+	M.delta(20,12,"[").ignore()
+	M.delta(13,21,"]else:").ignore()
+	M.delta(14,21,"]else:").ignore()
+	M.delta(15,21,"]else:").ignore()
+	M.delta(22,21,"]else:").ignore()
+	M.delta(25,21,"]else:").ignore()
+	M.delta(27,21,"]").pop("1")
+	M.delta(21,12,"[").ignore()
+	M.delta(13,22,"]").pop("1")
+	M.delta(14,22,"]").pop("1")
+	M.delta(15,22,"]").pop("1")
+	M.delta(22,22,"]").pop("1")
+	M.delta(25,22,"]").pop("1")
+	M.delta(27,22,"]").pop("1")
+	M.delta(22,12,';').ignore()
+	M.delta(12,23,"while").push("1")
+	M.delta(23,17,":").ignore()
+	M.delta(18,24,"do:").ignore()
+	M.delta(24,12,"[").ignore()
+	M.delta(13,25,"]").pop("1")
+	M.delta(14,25,"]").pop("1")
+	M.delta(15,25,"]").pop("1")
+	M.delta(22,25,"]").pop("1")
+	M.delta(25,25,"]").pop("1")
+	M.delta(27,25,"]").pop("1")
+	M.delta(25,12,';').ignore() 
+	
+	//REPEAT []
+	M.delta(12,26,"repeat:Num").push("1") 
+	M.delta(12,26,"repeat:Id").push("1")
+	M.delta(26,12,"[").ignore()
+	M.delta(13,27,"]").pop("1")
+	M.delta(14,27,"]").pop("1")
+	M.delta(15,27,"]").pop("1")
+	M.delta(22,27,"]").pop("1")
+	M.delta(25,27,"]").pop("1")
+	M.delta(27,27,"]").pop("1")
+	
+	//FINALLY
+	M.delta(27,12,';').ignore() 
+	//M.delta(29,10,'LABD').POP(1) // Out
+
+	 for each q in Q do
+	 	for each s in SkipChars do
+	 	   M.delta(q,q,λ+s).ignore()
+	 end
+	 end
+
+	return M
+end
