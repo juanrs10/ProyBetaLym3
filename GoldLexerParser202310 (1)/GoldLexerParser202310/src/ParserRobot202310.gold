@@ -3,13 +3,14 @@ using gold.**
 toSet(C) :=  {x|  x in C}
 
 function createParser(A):IPushdownAutomaton begin
+	SkipChars := {'\n',' '}  
 	Q:= (0‥27)
 	Σ:= toSet(A) ∪ {' ', '\n'}
 	Γ:= {'1'}
 	q₀:= 0
 	F:= {11}
 	M:=GPushdownAutomaton(Q,Σ,Γ,q₀,F)
-	SkipChars := {'\n',' '}   
+	 
 	
 	//STACK HANDLING 
 	
@@ -140,9 +141,12 @@ function createParser(A):IPushdownAutomaton begin
 	M.delta(25,22,"]").pop("1")
 	M.delta(27,22,"]").pop("1")
 	M.delta(22,12,';').ignore()
+	
+	//LOOPS
 	M.delta(12,23,"while").push("1")
 	M.delta(23,17,":").ignore()
 	M.delta(18,24,"do:").ignore()
+	
 	M.delta(24,12,"[").ignore()
 	M.delta(13,25,"]").pop("1")
 	M.delta(14,25,"]").pop("1")
